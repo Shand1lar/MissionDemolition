@@ -2,6 +2,7 @@ using UnityEngine;
 using System.Collections;
 
 public class Slingshot : MonoBehaviour {
+    static private Slingshot S; 
     // fields set in the Unity Inspector pane
     [Header("Set in Inspector")]                                            // a
     public GameObject          prefabProjectile;
@@ -15,11 +16,28 @@ public class Slingshot : MonoBehaviour {
 
     private Rigidbody             projectileRigidbody;  
 
+    public Transform leftFork;
+    public Transform rightFork;
+    private LineRenderer rubberBand;
+
+    private AudioSource slingshotAudio;
+
+     static public Vector3 LAUNCH_POS {                                        // b
+        get {
+            if (S == null ) return Vector3.zero;
+            return S.launchPos;
+        }
+    }
+
     void Awake() {
+        S = this; 
         Transform launchPointTrans = transform.Find("LaunchPoint");
         launchPoint = launchPointTrans.gameObject;
         launchPoint.SetActive( false );
         launchPos = launchPointTrans.position;                              // c
+        rubberBand = GetComponent<LineRenderer>();
+        rubberBand.enabled = false;
+        slingshotAudio = GetComponent<AudioSource>();
     }
 
     void OnMouseEnter() {
@@ -43,6 +61,8 @@ public class Slingshot : MonoBehaviour {
         // Set it to isKinematic for now
         projectileRigidbody = projectile.GetComponent<Rigidbody>();                // a
         projectileRigidbody.isKinematic = true;
+
+        rubberBand.enabled = true;
     }
      void Update() {
         // If Slingshot is not in aimingMode, don't run this code
@@ -66,6 +86,12 @@ public class Slingshot : MonoBehaviour {
         Vector3 projPos = launchPos + mouseDelta;
         projectile.transform.position = projPos;
 
+        Vector3 left  = leftFork  != null ? leftFork.position  : launchPos + Vector3.left  * 0.2f;
+        Vector3 right = rightFork != null ? rightFork.position : launchPos + Vector3.right * 0.2f;
+        rubberBand.SetPosition(0, left);
+        rubberBand.SetPosition(1, projPos);
+        rubberBand.SetPosition(2, right);
+
         if ( Input.GetMouseButtonUp(0) ) {                                         // e
             // The mouse has been released
             aimingMode = false;
@@ -73,6 +99,11 @@ public class Slingshot : MonoBehaviour {
             projectileRigidbody.velocity = -mouseDelta * velocityMult;
             FollowCam.POI=projectile;
             projectile = null;
+             MissionDemolition.ShotFired();                             // a
+            ProjectileLine.S.poi = projectile;
+            rubberBand.enabled = false;
+            slingshotAudio.Play();
         }
+
     }
 }
