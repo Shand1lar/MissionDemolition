@@ -28,16 +28,6 @@ public class ProjectileLine : MonoBehaviour {
         points = new List<Vector3>();
     }
 
-    void Awake() {
-        S = this;// Set the singleton
-        // Get a reference to the LineRenderer
-        line = GetComponent<LineRenderer>();
-        // Disable the LineRenderer until it's needed
-        line.enabled = false;
-        // Initialize the points List
-        points = new List<Vector3>();
-    }
-
     // This is a property (that is, a method masquerading as a field)
     public GameObject poi {
         get {
